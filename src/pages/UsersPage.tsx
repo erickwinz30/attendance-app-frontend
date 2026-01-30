@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -8,6 +8,7 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { UserPlus, Mail, Phone, MapPin, Briefcase } from "lucide-react";
+import { allUsers } from "../lib/user";
 
 interface User {
   id: number;
@@ -15,68 +16,24 @@ interface User {
   email: string;
   phone: string;
   position: string;
-  department: string;
-  status: "active" | "inactive";
+  department_id: number;
+  department_name: string;
+  status: string;
+  created_at: string;
 }
 
 const UsersPage = () => {
-  // Data dummy untuk users
-  const [users] = useState<User[]>([
-    {
-      id: 1,
-      name: "Ahmad Fauzi",
-      email: "ahmad.fauzi@company.com",
-      phone: "+62 812-3456-7890",
-      position: "Software Engineer",
-      department: "IT",
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Siti Nurhaliza",
-      email: "siti.nurhaliza@company.com",
-      phone: "+62 813-4567-8901",
-      position: "Product Manager",
-      department: "Product",
-      status: "active",
-    },
-    {
-      id: 3,
-      name: "Budi Santoso",
-      email: "budi.santoso@company.com",
-      phone: "+62 814-5678-9012",
-      position: "UI/UX Designer",
-      department: "Design",
-      status: "active",
-    },
-    {
-      id: 4,
-      name: "Rina Wijaya",
-      email: "rina.wijaya@company.com",
-      phone: "+62 815-6789-0123",
-      position: "HR Manager",
-      department: "HR",
-      status: "inactive",
-    },
-    {
-      id: 5,
-      name: "Dewi Lestari",
-      email: "dewi.lestari@company.com",
-      phone: "+62 816-7890-1234",
-      position: "Marketing Specialist",
-      department: "Marketing",
-      status: "active",
-    },
-    {
-      id: 6,
-      name: "Andi Pratama",
-      email: "andi.pratama@company.com",
-      phone: "+62 817-8901-2345",
-      position: "Backend Developer",
-      department: "IT",
-      status: "active",
-    },
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const data = await allUsers();
+      setUsers(data);
+
+      console.log("Fetched users:", data);
+    };
+    fetchUsers();
+  }, []); // Empty array = hanya run sekali saat mount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8">
@@ -140,7 +97,7 @@ const UsersPage = () => {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-blue-600">
-                {new Set(users.map((u) => u.department)).size}
+                {new Set(users.map((u) => u.department_name)).size}
               </p>
             </CardContent>
           </Card>
@@ -181,7 +138,7 @@ const UsersPage = () => {
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                  <span>{user.department}</span>
+                  <span>{user.department_name}</span>
                 </div>
                 <div className="flex gap-2 mt-4">
                   <Button variant="outline" size="sm" className="flex-1">
