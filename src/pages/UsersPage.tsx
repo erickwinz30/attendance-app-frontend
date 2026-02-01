@@ -7,8 +7,19 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Select } from "../components/ui/select";
 import { UserPlus, Mail, Phone, MapPin, Briefcase } from "lucide-react";
-import { allUsers } from "../lib/user";
+import { allUsers, allDepartments, createUser } from "../lib/user";
 
 interface User {
   id: number;
@@ -22,8 +33,35 @@ interface User {
   created_at: string;
 }
 
+interface Department {
+  id: number;
+  name: string;
+}
+
+type CreateUserData = {
+  name: string;
+  email: string;
+  phone: string;
+  position: string;
+  department_id: number;
+  status: string;
+};
+
 const UsersPage = () => {
+  // state for mounted data
   const [users, setUsers] = useState<User[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // form data state
+  const [formData, setFormData] = useState<CreateUserData>();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [position, setPosition] = useState("");
+  const [departmentId, setDepartmentId] = useState<number | "">("");
+  const [status, setStatus] = useState("active");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -33,7 +71,33 @@ const UsersPage = () => {
       console.log("Fetched users:", data);
     };
     fetchUsers();
+
+    const fetchDepartments = async () => {
+      const data = await allDepartments();
+      setDepartments(data);
+
+      console.log("Fetched departments:", data);
+    };
+    fetchDepartments();
   }, []); // Empty array = hanya run sekali saat mount
+
+  const handleSubmitCreateUser = async () => {
+    const formData: CreateUserData = {
+      name,
+      email,
+      phone,
+      position,
+      department_id: Number(departmentId),
+      status,
+    };
+
+    try {
+      const submitResult = await createUser(formData);
+      console.log(submitResult);
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8">
@@ -47,7 +111,7 @@ const UsersPage = () => {
               Kelola data karyawan dan pengguna sistem
             </p>
           </div>
-          <Button size="lg">
+          <Button size="lg" onClick={() => setIsModalOpen(true)}>
             <UserPlus className="w-5 h-5 mr-2" />
             Tambah User
           </Button>
@@ -153,6 +217,103 @@ const UsersPage = () => {
           ))}
         </div>
       </div>
+
+      {/* Add User Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tambah User Baru</DialogTitle>
+            <DialogDescription>
+              Isi form di bawah ini untuk menambahkan user baru ke sistem
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nama Lengkap</Label>
+              <Input
+                id="name"
+                placeholder="Masukkan nama lengkap"
+                onChange={(e) => setName(e.target.value)}
+                value={name}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="nama@email.com"
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">No. Telepon</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="08xxxxxxxxxx"
+                onChange={(e) => setPhone(e.target.value)}
+                value={phone}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="position">Posisi/Jabatan</Label>
+              <Input
+                id="position"
+                placeholder="Contoh: Software Engineer"
+                onChange={(e) => setPosition(e.target.value)}
+                value={position}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="department">Departemen</Label>
+              <Select
+                id="department"
+                onChange={(e) => setDepartmentId(Number(e.target.value))}
+                value={departmentId}
+              >
+                <option value="">Pilih Departemen</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                id="status"
+                onChange={(e) => setStatus(e.target.value)}
+                value={status}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+              Batal
+            </Button>
+            <Button
+              onClick={() => {
+                handleSubmitCreateUser();
+              }}
+            >
+              Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
