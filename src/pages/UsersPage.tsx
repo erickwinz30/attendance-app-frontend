@@ -18,7 +18,18 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Select } from "../components/ui/select";
-import { UserPlus, Mail, Phone, MapPin, Briefcase } from "lucide-react";
+import {
+  UserPlus,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  CheckCircle,
+  X,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { allUsers, allDepartments, createUser } from "../lib/user";
 
 interface User {
@@ -50,11 +61,10 @@ type CreateUserData = {
 const UsersPage = () => {
   // state for mounted data
   const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // form data state
-  const [formData, setFormData] = useState<CreateUserData>();
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -63,23 +73,56 @@ const UsersPage = () => {
   const [departmentId, setDepartmentId] = useState<number | "">("");
   const [status, setStatus] = useState("active");
 
+  // search state
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+
+  //function untuk fetch user data
+  const fetchUsers = async () => {
+    const data = await allUsers();
+    setUsers(data);
+    setFilteredUsers(data);
+    console.log("Fetched users:", data);
+  };
+
+  //function untuk fetch department data
+  const fetchDepartments = async () => {
+    const data = await allDepartments();
+    setDepartments(data);
+
+    console.log("Fetched departments:", data);
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      const data = await allUsers();
-      setUsers(data);
-
-      console.log("Fetched users:", data);
-    };
     fetchUsers();
-
-    const fetchDepartments = async () => {
-      const data = await allDepartments();
-      setDepartments(data);
-
-      console.log("Fetched departments:", data);
-    };
     fetchDepartments();
   }, []); // Empty array = hanya run sekali saat mount
+
+  const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value.toLowerCase());
+    setCurrentPage(1); // Reset ke halaman pertama saat query berubah
+
+    if (e.target.value === "") {
+      setFilteredUsers(users);
+      return;
+    }
+
+    const filtered = users.filter((user) => {
+      return (
+        user.name.toLowerCase().includes(e.target.value.toLowerCase()) ||
+        user.email.toLowerCase().includes(e.target.value.toLowerCase()) ||
+        user.position.toLowerCase().includes(e.target.value.toLowerCase()) ||
+        user.department_name
+          .toLowerCase()
+          .includes(e.target.value.toLowerCase())
+      );
+    });
+
+    setFilteredUsers(filtered);
+  };
 
   const handleSubmitCreateUser = async () => {
     const formData: CreateUserData = {
@@ -94,6 +137,27 @@ const UsersPage = () => {
     try {
       const submitResult = await createUser(formData);
       console.log(submitResult);
+
+      if (submitResult === "success") {
+        fetchUsers(); // Refresh user list
+        setIsModalOpen(false); // Close modal
+
+        // Reset form fields
+        setName("");
+        setEmail("");
+        setPhone("");
+        setPosition("");
+        setDepartmentId("");
+        setStatus("active");
+
+        // Show success alert
+        setShowSuccessAlert(true);
+
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+          setShowSuccessAlert(false);
+        }, 3000);
+      }
     } catch (error) {
       console.error("Error creating user:", error);
     }
@@ -101,6 +165,29 @@ const UsersPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8">
+      {/* Success Alert */}
+      {showSuccessAlert && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-5">
+          <div className="bg-white rounded-lg shadow-lg border border-green-200 p-4 flex items-start gap-3 max-w-md">
+            <div className="flex-shrink-0">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">Berhasil!</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                User baru berhasil ditambahkan ke sistem
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSuccessAlert(false)}
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -167,9 +254,48 @@ const UsersPage = () => {
           </Card>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Cari karyawan berdasarkan nama, email, posisi, atau departemen..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchQueryChange(e)}
+                  className="pl-10 pr-4 py-2 w-full text-base"
+                />
+              </div>
+              {searchQuery && (
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    Menampilkan hasil pencarian untuk:{" "}
+                    <span className="font-semibold">"{searchQuery}"</span>
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      handleSearchQueryChange({
+                        // target value set ke kosong agar awal kosong
+                        target: { value: "" },
+                      } as React.ChangeEvent<HTMLInputElement>)
+                    }
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Clear
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Users Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <Card key={user.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
@@ -215,6 +341,107 @@ const UsersPage = () => {
               </CardContent>
             </Card>
           ))}
+
+          {/* kondisi untuk no results */}
+          {filteredUsers.length === 0 && (
+            <div>Tidak ada hasil yang ditemukan...</div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-8 mb-4">
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Menampilkan{" "}
+                  <span className="font-semibold">
+                    {Math.min(
+                      (currentPage - 1) * itemsPerPage + 1,
+                      filteredUsers.length,
+                    )}
+                  </span>{" "}
+                  -{" "}
+                  <span className="font-semibold">
+                    {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
+                  </span>{" "}
+                  dari{" "}
+                  <span className="font-semibold">{filteredUsers.length}</span>{" "}
+                  user
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from(
+                      {
+                        length: Math.ceil(filteredUsers.length / itemsPerPage),
+                      },
+                      (_, i) => i + 1,
+                    )
+                      .filter((page) => {
+                        // Show first page, last page, current page, and pages around current
+                        const totalPages = Math.ceil(
+                          filteredUsers.length / itemsPerPage,
+                        );
+                        return (
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        );
+                      })
+                      .map((page, index, array) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && array[index - 1] !== page - 1 && (
+                            <span className="px-2 text-gray-400">...</span>
+                          )}
+                          <Button
+                            variant={
+                              currentPage === page ? "default" : "outline"
+                            }
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="min-w-[40px]"
+                          >
+                            {page}
+                          </Button>
+                        </React.Fragment>
+                      ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(
+                          Math.ceil(filteredUsers.length / itemsPerPage),
+                          prev + 1,
+                        ),
+                      )
+                    }
+                    disabled={
+                      currentPage ===
+                      Math.ceil(filteredUsers.length / itemsPerPage)
+                    }
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

@@ -58,7 +58,7 @@ export const createUser = async (formData: NewUser): Promise<string> => {
     console.log("Creating user with data:", formData);
     const response = await axios.post("/api/users", formData);
     if (response.status === 201) {
-      return "User created successfully";
+      return "success";
     } else {
       return `Failed to create user: ${response.statusText}`;
     }
