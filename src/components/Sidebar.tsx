@@ -1,10 +1,29 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
-import { Home, History, Users, QrCode } from "lucide-react";
+import { Home, History, Users, QrCode, LogOut } from "lucide-react";
+import { logout } from "../lib/authentication";
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const result = await logout();
+      if (result.success) {
+        navigate("/login");
+      } else {
+        alert("Logout gagal. Silakan coba lagi.");
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan saat logout.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const navItems = [
     { path: "/", label: "Home", icon: Home, description: "Scan Absensi" },
@@ -80,7 +99,20 @@ const Sidebar = () => {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white/20">
+      <div className="p-4 border-t border-white/20 space-y-3">
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 bg-white/20 hover:bg-white/30 text-white border border-white/40 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
+          <span className="font-medium text-sm">
+            {isLoggingOut ? "Logging out..." : "Logout"}
+          </span>
+        </button>
+
+        {/* Version Info */}
         <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
           <p className="text-xs text-white/70">Version 1.0.0</p>
           <p className="text-xs text-white/50 mt-1">© 2026 Attendance App</p>

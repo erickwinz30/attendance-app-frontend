@@ -1,5 +1,10 @@
 import axios from "axios";
 
+// Set default config untuk semua request
+axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.withCredentials = true;
+axios.defaults.headers.post["Content-Type"] = "application/json";
+
 export type User = {
   id: number;
   name: string;
@@ -28,11 +33,11 @@ export type NewUser = {
 
 export const allUsers = async (): Promise<User[]> => {
   try {
-    const response = await fetch("/api/users");
-    if (!response.ok) {
+    const response = await axios.get("/api/users");
+    if (response.status !== 200) {
       throw new Error("Network response was not ok");
     }
-    const data: User[] = await response.json();
+    const data: User[] = response.data;
     return data;
   } catch (error) {
     console.error("Failed to fetch users:", error);
