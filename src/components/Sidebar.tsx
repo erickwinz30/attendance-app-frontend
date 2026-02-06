@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { Home, History, Users, QrCode, LogOut } from "lucide-react";
@@ -12,12 +12,30 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
+import { checkAuthentication } from "../lib/authentication";
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isHR, setIsHR] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const isUserHR = await checkAuthentication();
+      // setIsHR(isUserHR.user.is_hrd);
+      console.log("User HRD status:", isUserHR);
+
+      if (isUserHR.authenticated && isUserHR.user) {
+        setIsHR(isUserHR.user.is_hrd);
+      } else {
+        setIsHR(false);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -42,13 +60,22 @@ const Sidebar = () => {
 
   const navItems = [
     { path: "/", label: "Home", icon: Home, description: "Scan Absensi" },
-    {
-      path: "/history",
-      label: "History",
-      icon: History,
-      description: "Riwayat Absensi",
-    },
-    { path: "/users", label: "Users", icon: Users, description: "Daftar User" },
+    ...(isHR
+      ? [
+          {
+            path: "/history",
+            label: "History",
+            icon: History,
+            description: "Riwayat Absensi",
+          },
+          {
+            path: "/users",
+            label: "Users",
+            icon: Users,
+            description: "Daftar User",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -70,6 +97,7 @@ const Sidebar = () => {
       <nav className="flex-1 py-6 px-3">
         <div className="space-y-2">
           {navItems.map((item) => {
+            console.log("Rendering nav item:", item);
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
