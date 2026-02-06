@@ -3,11 +3,21 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { Home, History, Users, QrCode, LogOut } from "lucide-react";
 import { logout } from "../lib/authentication";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -22,7 +32,12 @@ const Sidebar = () => {
       alert("Terjadi kesalahan saat logout.");
     } finally {
       setIsLoggingOut(false);
+      setShowLogoutDialog(false);
     }
+  };
+
+  const handleLogoutClick = () => {
+    setShowLogoutDialog(true);
   };
 
   const navItems = [
@@ -102,7 +117,7 @@ const Sidebar = () => {
       <div className="p-4 border-t border-white/20 space-y-3">
         {/* Logout Button */}
         <button
-          onClick={handleLogout}
+          onClick={handleLogoutClick}
           disabled={isLoggingOut}
           className="w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 bg-white/20 hover:bg-white/30 text-white border border-white/40 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
         >
@@ -118,6 +133,37 @@ const Sidebar = () => {
           <p className="text-xs text-white/50 mt-1">© 2026 Attendance App</p>
         </div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Konfirmasi Logout</DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin keluar dari aplikasi? Anda harus login
+              kembali untuk mengakses sistem.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+              disabled={isLoggingOut}
+              className="w-full sm:w-auto"
+            >
+              Batal
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full sm:w-auto"
+            >
+              {isLoggingOut ? "Logging out..." : "Ya, Logout"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

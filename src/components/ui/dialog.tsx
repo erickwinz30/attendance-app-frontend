@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -13,17 +14,45 @@ export const Dialog: React.FC<DialogProps> = ({
   onOpenChange,
   children,
 }) => {
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [open]);
+
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  const dialogContent = (
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4 dialog-overlay-enter"
+      style={{
+        zIndex: 9999,
+        isolation: "isolate",
+      }}
+    >
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black"
+        style={{
+          opacity: 0.75,
+          backdropFilter: "blur(8px)",
+        }}
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative z-50">{children}</div>
+      <div
+        className="relative w-full flex items-center justify-center"
+        style={{ zIndex: 10000 }}
+      >
+        {children}
+      </div>
     </div>
   );
+
+  return ReactDOM.createPortal(dialogContent, document.body);
 };
 
 interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -38,9 +67,15 @@ export const DialogContent = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "bg-white rounded-lg shadow-lg w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto",
+        "bg-white rounded-xl w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto dialog-content-enter",
         className,
       )}
+      style={{
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6)",
+        position: "relative",
+        zIndex: 10001,
+      }}
+      onClick={(e) => e.stopPropagation()}
       {...props}
     >
       {children}
@@ -58,7 +93,7 @@ export const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex flex-col space-y-1.5 p-6 border-b", className)}
+        className={cn("flex flex-col space-y-2 p-6", className)}
         {...props}
       >
         {children}
@@ -114,7 +149,7 @@ export const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
       <div
         ref={ref}
         className={cn(
-          "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 border-t",
+          "flex flex-col-reverse sm:flex-row sm:justify-end gap-2 p-6 pt-4 border-t border-gray-200",
           className,
         )}
         {...props}
