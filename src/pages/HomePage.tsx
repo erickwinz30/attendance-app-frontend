@@ -8,18 +8,29 @@ import {
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { QrCode, Camera, CheckCircle2 } from "lucide-react";
+import AttendanceResponse from "../types/AttendanceResponse";
+
+import { generateAttendanceToken } from "../lib/attendance";
+import QRGenerator from "../components/QRGenerator";
 
 const HomePage = () => {
-  const [scanning, setScanning] = useState(false);
-  const [scannedData, setScannedData] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [generatedQR, setGeneratedQR] = useState<AttendanceResponse | null>(
+    null,
+  );
 
-  const handleScan = () => {
-    setScanning(true);
-    // Simulasi scanning
-    setTimeout(() => {
-      setScanning(false);
-      setScannedData("USER-12345");
-    }, 2000);
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const tokenData: AttendanceResponse = await generateAttendanceToken();
+      console.log("Generated attendance token data:", tokenData);
+
+      setGeneratedQR(tokenData);
+    } catch (error) {
+      console.error("Failed to generate attendance token:", error);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -27,52 +38,49 @@ const HomePage = () => {
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Scan Absensi
+            Generate QR Code
           </h1>
-          <p className="text-gray-600">
-            Scan QR code untuk mencatat kehadiran Anda
-          </p>
+          <p className="text-gray-600">Buat QR code untuk absensi Anda</p>
         </div>
 
         <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="text-center">QR Code Scanner</CardTitle>
+            <CardTitle className="text-center">QR Code Generator</CardTitle>
             <CardDescription className="text-center">
-              Arahkan kamera ke QR code
+              Klik tombol untuk membuat QR code
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center space-y-6">
             <div className="relative w-64 h-64 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-              {scanning ? (
+              {generating ? (
                 <div className="animate-pulse">
-                  <Camera className="w-16 h-16 text-primary" />
-                  <p className="text-sm text-gray-600 mt-2">Scanning...</p>
+                  <QrCode className="w-16 h-16 text-primary" />
+                  <p className="text-sm text-gray-600 mt-2">Generating...</p>
                 </div>
-              ) : scannedData ? (
-                <div className="text-center">
-                  <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
-                  <p className="text-sm font-medium text-gray-900 mt-2">
-                    Berhasil!
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">{scannedData}</p>
-                </div>
+              ) : generatedQR ? (
+                <QRGenerator data={generatedQR} />
               ) : (
-                <QrCode className="w-16 h-16 text-gray-400" />
+                <div className="text-center">
+                  <QrCode className="w-16 h-16 text-gray-400 mx-auto" />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Belum ada QR code
+                  </p>
+                </div>
               )}
             </div>
 
-            {!scanning && (
-              <Button size="lg" onClick={handleScan} className="w-full">
-                <Camera className="w-5 h-5 mr-2" />
-                {scannedData ? "Scan Ulang" : "Mulai Scan"}
+            {!generating && (
+              <Button size="lg" onClick={handleGenerate} className="w-full">
+                <QrCode className="w-5 h-5 mr-2" />
+                {generatedQR ? "Generate Ulang" : "Generate QR Code"}
               </Button>
             )}
 
-            {scannedData && (
+            {generatedQR && (
               <div className="w-full space-y-2">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <p className="text-sm font-medium text-green-800">
-                    Absensi berhasil dicatat!
+                    QR Code berhasil dibuat!
                   </p>
                   <p className="text-xs text-green-600 mt-1">
                     Waktu: {new Date().toLocaleString("id-ID")}
