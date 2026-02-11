@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import AttendanceResponse from "../types/AttendanceResponse";
+import { AttendanceResponse } from "../types/attendance";
 
 interface QRGeneratorProps {
   data: AttendanceResponse;

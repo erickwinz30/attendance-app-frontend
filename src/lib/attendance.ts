@@ -1,4 +1,5 @@
 import axios from "axios";
+import { CheckAttendanceRequest } from "../types/attendance";
 
 // Set default config untuk semua request
 axios.defaults.baseURL = "http://localhost:8080";
@@ -17,5 +18,15 @@ export const generateAttendanceToken = async () => {
   } catch (error) {
     console.error("Error generating attendance token:", error);
     throw new Error("Gagal membuat token absen");
+  }
+};
+
+export const checkAttendanceToken = async (data: CheckAttendanceRequest) => {
+  try {
+    const response = await axios.post("/api/attendance/token/check", data);
+    return response.data;
+  } catch (error) {
+    console.error("Error checking attendance token:", error);
+    throw new Error("Gagal memeriksa token absen");
   }
 };
