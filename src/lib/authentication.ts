@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // Set default config untuk semua request
-axios.defaults.baseURL = "http://localhost:8080";
+// Gunakan relative URL agar proxy bisa handle routing
+axios.defaults.baseURL = "";
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
@@ -16,7 +17,7 @@ type AuthCheckResponse = {
     id: number;
     name: string;
     email: string;
-    is_hrd: boolean;
+    role: string;
   };
 };
 

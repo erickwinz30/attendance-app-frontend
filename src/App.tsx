@@ -4,10 +4,13 @@ import Sidebar from "./components/Sidebar";
 import HomePage from "./pages/HomePage";
 import HistoryPage from "./pages/HistoryPage";
 import UsersPage from "./pages/UsersPage";
+import ScannerPage from "./pages/ScannerPage";
 import LoginPage from "./pages/LoginPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HRDRoute from "./components/HRDRoute";
+import ScannerRoute from "./components/ScannerRoute";
+import NonAdminRoute from "./components/NonAdminRoute";
 
 function App() {
   return (
@@ -26,7 +29,14 @@ function App() {
                 <Sidebar />
                 <div className="flex-1 ml-64">
                   <Routes>
-                    <Route path="/" element={<HomePage />} />
+                    <Route
+                      path="/"
+                      element={
+                        <NonAdminRoute>
+                          <HomePage />
+                        </NonAdminRoute>
+                      }
+                    />
                     <Route
                       path="/history"
                       element={
@@ -41,6 +51,14 @@ function App() {
                         <HRDRoute>
                           <UsersPage />
                         </HRDRoute>
+                      }
+                    />
+                    <Route
+                      path="/scanner"
+                      element={
+                        <ScannerRoute>
+                          <ScannerPage />
+                        </ScannerRoute>
                       }
                     />
                   </Routes>

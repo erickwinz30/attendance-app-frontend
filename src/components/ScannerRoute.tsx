@@ -2,28 +2,28 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { checkAuthentication } from "../lib/authentication";
 
-interface HRDRouteProps {
+interface ScannerRouteProps {
   children: React.ReactNode;
 }
 
-const HRDRoute: React.FC<HRDRouteProps> = ({ children }) => {
-  const [isHR, setIsHR] = useState<boolean | null>(null);
+const ScannerRoute: React.FC<ScannerRouteProps> = ({ children }) => {
+  const [isScanner, setIsScanner] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const verifyHRD = async () => {
+    const verifyScanner = async () => {
       const result = await checkAuthentication();
 
-      if (result.authenticated && result.user?.role === "HR") {
-        setIsHR(true);
+      if (result.authenticated && result.user?.role === "Admin") {
+        setIsScanner(true);
       } else {
-        setIsHR(false);
+        setIsScanner(false);
       }
 
       setIsChecking(false);
     };
 
-    verifyHRD();
+    verifyScanner();
   }, []);
 
   if (isChecking) {
@@ -34,11 +34,11 @@ const HRDRoute: React.FC<HRDRouteProps> = ({ children }) => {
     );
   }
 
-  if (!isHR) {
+  if (!isScanner) {
     return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;
 };
 
-export default HRDRoute;
+export default ScannerRoute;

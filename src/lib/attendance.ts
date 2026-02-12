@@ -2,7 +2,8 @@ import axios from "axios";
 import { CheckAttendanceRequest } from "../types/attendance";
 
 // Set default config untuk semua request
-axios.defaults.baseURL = "http://localhost:8080";
+// Gunakan relative URL agar proxy bisa handle routing
+axios.defaults.baseURL = "";
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post["Content-Type"] = "application/json";
 

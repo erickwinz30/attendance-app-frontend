@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
-import { Home, History, Users, QrCode, LogOut } from "lucide-react";
+import { Home, History, Users, QrCode, LogOut, Camera } from "lucide-react";
 import { logout } from "../lib/authentication";
 import {
   Dialog,
@@ -20,6 +20,7 @@ const Sidebar = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isHR, setIsHR] = useState<boolean | null>(null);
+  const [isScanner, setIsScanner] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -27,10 +28,15 @@ const Sidebar = () => {
       // setIsHR(isUserHR.user.is_hrd);
       console.log("User HRD status:", isUserHR);
 
-      if (isUserHR.authenticated && isUserHR.user) {
-        setIsHR(isUserHR.user.is_hrd);
+      if (isUserHR.authenticated && isUserHR.user?.role === "Admin") {
+        setIsHR(false);
+        setIsScanner(true);
+      } else if (isUserHR.authenticated && isUserHR.user?.role === "HR") {
+        setIsHR(true);
+        setIsScanner(false);
       } else {
         setIsHR(false);
+        setIsScanner(false);
       }
     };
 
@@ -58,25 +64,35 @@ const Sidebar = () => {
     setShowLogoutDialog(true);
   };
 
-  const navItems = [
-    { path: "/", label: "Home", icon: Home, description: "Scan Absensi" },
-    ...(isHR
-      ? [
-          {
-            path: "/history",
-            label: "History",
-            icon: History,
-            description: "Riwayat Absensi",
-          },
-          {
-            path: "/users",
-            label: "Users",
-            icon: Users,
-            description: "Daftar User",
-          },
-        ]
-      : []),
-  ];
+  // Conditional navigation items based on user role
+  const navItems = isScanner
+    ? [
+        {
+          path: "/scanner",
+          label: "Scanner",
+          icon: Camera,
+          description: "Scan QR Code",
+        },
+      ]
+    : [
+        { path: "/", label: "Home", icon: Home, description: "" },
+        ...(isHR
+          ? [
+              {
+                path: "/history",
+                label: "History",
+                icon: History,
+                description: "Riwayat Absensi",
+              },
+              {
+                path: "/users",
+                label: "Users",
+                icon: Users,
+                description: "Daftar User",
+              },
+            ]
+          : []),
+      ];
 
   return (
     <div className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-primary to-blue-700 text-white shadow-2xl flex flex-col">
