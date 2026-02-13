@@ -7,9 +7,9 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { QrCode, Camera, CheckCircle2, Clock } from "lucide-react";
+import { QrCode, Clock } from "lucide-react";
 import {
-  AttendanceResponse,
+  GenerateAttendanceResponse,
   CheckAttendanceRequest,
 } from "../types/attendance";
 
@@ -18,13 +18,11 @@ import {
   checkAttendanceToken,
 } from "../lib/attendance";
 import QRGenerator from "../components/QRGenerator";
-import { request } from "http";
 
 const HomePage = () => {
   const [generating, setGenerating] = useState(false);
-  const [generatedQR, setGeneratedQR] = useState<AttendanceResponse | null>(
-    null,
-  );
+  const [generatedQR, setGeneratedQR] =
+    useState<GenerateAttendanceResponse | null>(null);
   const [checking, setChecking] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
@@ -38,7 +36,8 @@ const HomePage = () => {
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const tokenData: AttendanceResponse = await generateAttendanceToken();
+      const tokenData: GenerateAttendanceResponse =
+        await generateAttendanceToken();
       console.log("Generated attendance token data:", tokenData);
 
       // Simpan ke localStorage
@@ -95,7 +94,7 @@ const HomePage = () => {
           return;
         }
 
-        const tokenData: AttendanceResponse = JSON.parse(storedToken);
+        const tokenData: GenerateAttendanceResponse = JSON.parse(storedToken);
         console.log("Found stored token:", tokenData);
 
         const requestData: CheckAttendanceRequest = {
@@ -107,8 +106,28 @@ const HomePage = () => {
         console.log("Token check response:", response);
 
         if (response.valid) {
-          setGeneratedQR(tokenData);
-          console.log("Token is still valid, restored from storage");
+          // Check if token is expired
+          const expiredAt = new Date(tokenData.expired_at).getTime();
+          const now = new Date().getTime();
+          const isExpired = now >= expiredAt;
+
+          // Check if token has been used
+          const isUsed = response.is_used === true;
+
+          if (isUsed || isExpired) {
+            // Token is either used or expired, remove from storage
+            localStorage.removeItem("attendanceToken");
+            if (isUsed) {
+              console.log("Token has already been used for attendance.");
+            }
+            if (isExpired) {
+              console.log("Token has expired.");
+            }
+          } else {
+            // Token is still valid, not used, and not expired - restore it
+            setGeneratedQR(tokenData);
+            console.log("Token is still valid, restored from storage");
+          }
         } else {
           localStorage.removeItem("attendanceToken");
           console.log("Token invalid:", response.message);

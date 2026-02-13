@@ -1,9 +1,19 @@
 import { useEffect, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 
-import { AttendanceResponse } from "../types/attendance";
+import { GenerateAttendanceResponse } from "../types/attendance";
+import { submitAttendance } from "../lib/attendance";
 
-export default function Scanner() {
+interface ScannerProps {
+  onScanResult?: (result: {
+    success: boolean;
+    message: string;
+    type: "success" | "error" | "late" | "already_used" | "expired" | "invalid";
+    data?: any;
+  }) => void;
+}
+
+export default function Scanner({ onScanResult }: ScannerProps) {
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const renderAttempted = useRef(false);
 
@@ -33,10 +43,113 @@ export default function Scanner() {
       false,
     );
 
-    const onScanSuccess = (decodedText: string) => {
-      const qrData: AttendanceResponse = JSON.parse(decodedText);
-      console.log("QR ditemukan:", qrData);
-      // TODO: parse dan kirim ke backend
+    const onScanSuccess = async (decodedText: string) => {
+      try {
+        const qrData: GenerateAttendanceResponse = JSON.parse(decodedText);
+        console.log("QR ditemukan:", qrData);
+
+        // Pause scanner sementara saat memproses
+        if (scannerRef.current) {
+          await scannerRef.current.pause();
+        }
+
+        try {
+          const response = await submitAttendance(qrData);
+          console.log("Backend response:", response);
+
+          // Determine response type based on backend response
+          let resultType:
+            | "success"
+            | "late"
+            | "already_used"
+            | "expired"
+            | "error" = "success";
+          let message = "Absensi berhasil dicatat!";
+
+          if (response.success === false) {
+            // Handle error responses from backend
+            const msg = response.message?.toLowerCase() || "";
+
+            if (
+              msg.includes("already used") ||
+              msg.includes("sudah digunakan")
+            ) {
+              resultType = "already_used";
+              message = "QR code ini sudah pernah digunakan untuk absensi.";
+            } else if (msg.includes("expired") || msg.includes("kadaluarsa")) {
+              resultType = "expired";
+              message = "QR code sudah expired. Silakan generate QR code baru.";
+            } else {
+              resultType = "error";
+              message = response.message || "Gagal mencatat absensi.";
+            }
+          } else {
+            // Success response
+            resultType = "success";
+            message = "Absensi berhasil dicatat!";
+
+            // Check if there's additional info (like late)
+            const msg = response.message?.toLowerCase() || "";
+            if (msg.includes("late") || msg.includes("telat")) {
+              resultType = "late";
+              message = "Anda terlambat, tetapi absensi telah dicatat.";
+            }
+          }
+
+          if (onScanResult) {
+            onScanResult({
+              success: response.success === true,
+              message: message,
+              type: resultType,
+              data: response,
+            });
+          }
+
+          // Resume scanner after 3 seconds
+          setTimeout(() => {
+            if (scannerRef.current) {
+              scannerRef.current.resume();
+            }
+          }, 3000);
+        } catch (error: any) {
+          console.error("Error submitting attendance:", error);
+          const errorMessage =
+            error.response?.data?.message ||
+            error.message ||
+            "Gagal mengirim absensi.";
+
+          if (onScanResult) {
+            onScanResult({
+              success: false,
+              message: errorMessage,
+              type: "error",
+            });
+          }
+
+          // Resume scanner after error
+          setTimeout(() => {
+            if (scannerRef.current) {
+              scannerRef.current.resume();
+            }
+          }, 3000);
+        }
+      } catch (parseError) {
+        console.error("Error parsing QR data:", parseError);
+        if (onScanResult) {
+          onScanResult({
+            success: false,
+            message: "QR code tidak valid atau format salah.",
+            type: "invalid",
+          });
+        }
+
+        // Resume scanner
+        setTimeout(() => {
+          if (scannerRef.current) {
+            scannerRef.current.resume();
+          }
+        }, 3000);
+      }
     };
 
     const onScanError = (errorMessage: string) => {
@@ -64,7 +177,7 @@ export default function Scanner() {
           });
       }
     };
-  }, []);
+  }, [onScanResult]);
 
   return (
     <div className="w-full flex justify-center">

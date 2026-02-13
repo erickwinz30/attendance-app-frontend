@@ -12,7 +12,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { LogIn } from "lucide-react";
 
-import { login } from "../lib/authentication";
+import { login, checkAuthentication } from "../lib/authentication";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -39,9 +39,24 @@ const LoginPage = () => {
         throw new Error(result.message || "Login gagal");
       }
 
-      // Placeholder untuk sukses login
-      console.log("Login successful: ", result.message);
-      navigate("/");
+      // Check user authentication and role after successful login
+      const authCheck = await checkAuthentication();
+
+      if (authCheck.authenticated && authCheck.user) {
+        console.log("User role:", authCheck.user.role);
+
+        // Redirect based on user role
+        if (authCheck.user.role === "Admin") {
+          console.log("Admin user detected, redirecting to /scanner");
+          navigate("/scanner");
+        } else {
+          console.log("Non-admin user, redirecting to home");
+          navigate("/");
+        }
+      } else {
+        // Fallback if auth check fails
+        navigate("/");
+      }
     } catch (err) {
       setError((err as Error).message || "Login gagal");
     } finally {

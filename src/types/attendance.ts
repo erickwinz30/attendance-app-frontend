@@ -1,3 +1,9 @@
+export interface GenerateAttendanceResponse {
+  user_id: number;
+  token: string;
+  expired_at: string;
+}
+
 export interface AttendanceResponse {
   user_id: number;
   token: string;

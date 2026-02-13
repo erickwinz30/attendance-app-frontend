@@ -1,5 +1,8 @@
 import axios from "axios";
-import { CheckAttendanceRequest } from "../types/attendance";
+import {
+  CheckAttendanceRequest,
+  GenerateAttendanceResponse,
+} from "../types/attendance";
 
 // Set default config untuk semua request
 // Gunakan relative URL agar proxy bisa handle routing
@@ -29,5 +32,15 @@ export const checkAttendanceToken = async (data: CheckAttendanceRequest) => {
   } catch (error) {
     console.error("Error checking attendance token:", error);
     throw new Error("Gagal memeriksa token absen");
+  }
+};
+
+export const submitAttendance = async (data: GenerateAttendanceResponse) => {
+  try {
+    const response = await axios.post("/api/attendance/submit", data);
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting attendance:", error);
+    throw new Error("Gagal mengirim data absen");
   }
 };
