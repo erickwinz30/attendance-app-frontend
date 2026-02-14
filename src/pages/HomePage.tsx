@@ -17,9 +17,12 @@ import {
   generateAttendanceToken,
   checkAttendanceToken,
 } from "../lib/attendance";
+
+import { checkAuthentication } from "../lib/authentication";
 import QRGenerator from "../components/QRGenerator";
 
 const HomePage = () => {
+  const [isAttended, setIsAttended] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedQR, setGeneratedQR] =
     useState<GenerateAttendanceResponse | null>(null);
@@ -143,6 +146,31 @@ const HomePage = () => {
     checkExistingToken();
   }, []);
 
+  // check if user has attended
+  useEffect(() => {
+    const checkUserAttendance = async () => {
+      try {
+        const authCheck = await checkAuthentication();
+        console.log("Authentication check on HomePage:", authCheck);
+
+        if (authCheck.authenticated) {
+          if (authCheck.is_attended) {
+            setIsAttended(true);
+            console.log("User has already attended today.");
+          } else {
+            console.log("User has not attended yet.");
+          }
+        } else {
+          console.log("User is not authenticated.");
+        }
+      } catch (error) {
+        console.error("Error checking user attendance:", error);
+      }
+    };
+
+    checkUserAttendance();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -182,10 +210,27 @@ const HomePage = () => {
             </div>
 
             {!generating && !generatedQR && (
-              <Button size="lg" onClick={handleGenerate} className="w-full">
-                <QrCode className="w-5 h-5 mr-2" />
-                Generate QR Code
-              </Button>
+              <>
+                {isAttended && (
+                  <div className="w-full bg-green-50 border border-green-200 rounded-lg p-4 mb-2">
+                    <p className="text-sm font-medium text-green-800 text-center">
+                      ✓ Anda sudah melakukan absensi hari ini
+                    </p>
+                    <p className="text-xs text-green-600 text-center mt-1">
+                      QR Code tidak dapat di-generate lagi
+                    </p>
+                  </div>
+                )}
+                <Button
+                  size="lg"
+                  onClick={handleGenerate}
+                  className="w-full"
+                  disabled={isAttended || checking}
+                >
+                  <QrCode className="w-5 h-5 mr-2" />
+                  {isAttended ? "Sudah Absen Hari Ini" : "Generate QR Code"}
+                </Button>
+              </>
             )}
 
             {generatedQR && (

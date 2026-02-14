@@ -19,6 +19,7 @@ type AuthCheckResponse = {
     email: string;
     role: string;
   };
+  is_attended: boolean;
 };
 
 export const login = async (
@@ -81,12 +82,13 @@ export const checkAuthentication = async (): Promise<AuthCheckResponse> => {
       return {
         authenticated: true,
         user: response.data.user,
+        is_attended: response.data.is_attended,
       };
     } else {
-      return { authenticated: false };
+      return { authenticated: false, is_attended: false };
     }
   } catch (error) {
     console.error("Authentication check failed:", error);
-    return { authenticated: false };
+    return { authenticated: false, is_attended: false };
   }
 };
