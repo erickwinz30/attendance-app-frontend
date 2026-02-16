@@ -58,22 +58,24 @@ export const getWorkHours = async (): Promise<WorkHours> => {
   }
 };
 
-export const getTodayAttendance = async (): Promise<TodayAttendanceResponse> => {
-  try {
-    const response = await axios.get("/api/attendance/today");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching today attendance:", error);
-    throw new Error("Gagal mengambil data absensi hari ini");
-  }
-};
+export const getTodayAttendance =
+  async (): Promise<TodayAttendanceResponse> => {
+    try {
+      const response = await axios.get("/api/attendance/today");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching today attendance:", error);
+      throw new Error("Gagal mengambil data absensi hari ini");
+    }
+  };
 
-export const getMonthlyAttendance = async (): Promise<MonthlyAttendanceResponse> => {
-  try {
-    const response = await axios.get("/api/attendance/monthly");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching monthly attendance:", error);
-    throw new Error("Gagal mengambil data absensi bulanan");
-  }
-};
+export const getMonthlyAttendance =
+  async (): Promise<MonthlyAttendanceResponse> => {
+    try {
+      const response = await axios.get("/api/attendance/monthly");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching monthly attendance:", error);
+      throw new Error("Gagal mengambil data absensi bulanan");
+    }
+  };

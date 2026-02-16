@@ -35,17 +35,32 @@ export interface AttendanceRecord {
   check_in_time: string;
   token: string;
   is_used: boolean;
+  status?: string; // "late" or "on_time"
+}
+
+export interface AbsentUser {
+  user_id: number;
+  user_name: string;
+  user_email: string;
+  department_name: string;
+  position: string;
 }
 
 export interface TodayAttendanceResponse {
   date: string;
   total_attend: number;
+  total_late: number;
+  total_absent: number;
   attendances: AttendanceRecord[];
+  absent_users: AbsentUser[];
 }
 
 export interface MonthlyAttendanceResponse {
   month: string;
   year: string;
   total_attend: number;
+  total_late: number;
+  total_absent: number;
   attendances: AttendanceRecord[];
+  absent_users: AbsentUser[];
 }
