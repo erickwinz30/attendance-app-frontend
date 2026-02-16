@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import HomePage from "./pages/HomePage";
+import DashboardPage from "./pages/DashboardPage";
 import HistoryPage from "./pages/HistoryPage";
 import UsersPage from "./pages/UsersPage";
 import ScannerPage from "./pages/ScannerPage";
@@ -35,6 +36,14 @@ function App() {
                         <NonAdminRoute>
                           <HomePage />
                         </NonAdminRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <HRDRoute>
+                          <DashboardPage />
+                        </HRDRoute>
                       }
                     />
                     <Route

@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
-import { Home, History, Users, QrCode, LogOut, Camera } from "lucide-react";
+import {
+  Home,
+  History,
+  Users,
+  QrCode,
+  LogOut,
+  Camera,
+  BarChart3,
+} from "lucide-react";
 import { logout } from "../lib/authentication";
 import {
   Dialog,
@@ -78,6 +86,12 @@ const Sidebar = () => {
         { path: "/", label: "Home", icon: Home, description: "" },
         ...(isHR
           ? [
+              {
+                path: "/dashboard",
+                label: "Dashboard",
+                icon: BarChart3,
+                description: "Statistik Kehadiran",
+              },
               {
                 path: "/history",
                 label: "History",
