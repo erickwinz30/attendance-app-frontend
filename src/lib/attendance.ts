@@ -5,6 +5,7 @@ import {
   WorkHours,
   TodayAttendanceResponse,
   MonthlyAttendanceResponse,
+  UserAttendanceResponse,
 } from "../types/attendance";
 
 // Set default config untuk semua request
@@ -79,3 +80,19 @@ export const getMonthlyAttendance =
       throw new Error("Gagal mengambil data absensi bulanan");
     }
   };
+
+export const getUserAttendance = async (
+  userId: number,
+  month: number,
+  year: number,
+): Promise<UserAttendanceResponse> => {
+  try {
+    const response = await axios.get(
+      `/api/attendance/employee/monthly?user_id=${userId}&month=${month}&year=${year}`,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user attendance:", error);
+    throw new Error("Gagal mengambil data absensi user");
+  }
+};

@@ -46,6 +46,23 @@ export const allUsers = async (): Promise<User[]> => {
   }
 };
 
+export const getUser = async (userId: number): Promise<User | null> => {
+  try {
+    const response = await axios.get(`/api/users/${userId}`);
+    if (response.status === 200) {
+      return response.data as User;
+    } else {
+      console.error(
+        `Failed to fetch user with ID ${userId}: ${response.statusText}`,
+      );
+      return null;
+    }
+  } catch (error) {
+    console.error(`Failed to fetch user with ID ${userId}:`, error);
+    return null;
+  }
+};
+
 export const allDepartments = async (): Promise<Department[]> => {
   try {
     const response = await axios.get("/api/departments");

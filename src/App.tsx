@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
 import HistoryPage from "./pages/HistoryPage";
 import UsersPage from "./pages/UsersPage";
+import UserDetailPage from "./pages/UserDetailPage";
 import ScannerPage from "./pages/ScannerPage";
 import LoginPage from "./pages/LoginPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
@@ -59,6 +60,14 @@ function App() {
                       element={
                         <HRDRoute>
                           <UsersPage />
+                        </HRDRoute>
+                      }
+                    />
+                    <Route
+                      path="/users/:userId"
+                      element={
+                        <HRDRoute>
+                          <UserDetailPage />
                         </HRDRoute>
                       }
                     />

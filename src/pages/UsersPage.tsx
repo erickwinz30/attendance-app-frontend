@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -59,6 +60,8 @@ type CreateUserData = {
 };
 
 const UsersPage = () => {
+  const navigate = useNavigate();
+
   // state for mounted data
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -334,7 +337,12 @@ const UsersPage = () => {
                   <Button variant="outline" size="sm" className="flex-1">
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => navigate(`/users/${user.id}`)}
+                  >
                     Detail
                   </Button>
                 </div>

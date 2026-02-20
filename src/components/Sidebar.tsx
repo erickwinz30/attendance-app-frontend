@@ -129,7 +129,13 @@ const Sidebar = () => {
           {navItems.map((item) => {
             console.log("Rendering nav item:", item);
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            // Check if current path matches, including sub-routes for certain paths
+            const isActive =
+              location.pathname === item.path ||
+              (item.path === "/users" &&
+                location.pathname.startsWith("/users/")) ||
+              (item.path === "/history" &&
+                location.pathname.startsWith("/history/"));
             return (
               <Link
                 key={item.path}

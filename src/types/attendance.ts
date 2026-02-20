@@ -64,3 +64,18 @@ export interface MonthlyAttendanceResponse {
   attendances: AttendanceRecord[];
   absent_users: AbsentUser[];
 }
+
+export interface UserAttendanceRecord {
+  date: string;
+  check_in_time: string;
+  status: string;
+}
+
+export interface UserAttendanceResponse {
+  month: string;
+  year: string;
+  total_present: number;
+  total_absent: number;
+  total_late_hours: string;
+  attendances: UserAttendanceRecord[];
+}
