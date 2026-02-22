@@ -18,6 +18,9 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Phone,
+  Shield,
+  Plus,
 } from "lucide-react";
 import { getUser } from "../lib/user";
 import { getUserAttendance } from "../lib/attendance";
@@ -157,6 +160,34 @@ const UserDetailPage = () => {
     });
   };
 
+  const formatCreatedDate = (dateString: string) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const getStatusDisplay = (status: string) => {
+    if (status === "active") {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-green-700 font-medium">Aktif</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+          <span className="text-red-700 font-medium">Tidak Aktif</span>
+        </div>
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8 flex items-center justify-center">
@@ -231,6 +262,10 @@ const UserDetailPage = () => {
                   <span className="break-all">{userData.email}</span>
                 </div>
                 <div className="flex items-center text-gray-600">
+                  <Phone className="w-5 h-5 mr-3 flex-shrink-0" />
+                  <span>{userData.phone}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
                   <Briefcase className="w-5 h-5 mr-3 flex-shrink-0" />
                   <span>{userData.position}</span>
                 </div>
@@ -239,6 +274,21 @@ const UserDetailPage = () => {
                 <div className="flex items-center text-gray-600">
                   <MapPin className="w-5 h-5 mr-3 flex-shrink-0" />
                   <span>{userData.department_name}</span>
+                </div>
+                <div className="flex items-center">
+                  <Shield className="w-5 h-5 mr-3 flex-shrink-0" />
+                  {getStatusDisplay(userData.status)}
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <Plus className="w-5 h-5 mr-3 flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">
+                      Bergabung pada
+                    </span>
+                    <span className="font-medium">
+                      {formatCreatedDate(userData.created_at)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

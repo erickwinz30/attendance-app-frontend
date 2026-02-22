@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -31,7 +31,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { allUsers, allDepartments, createUser } from "../lib/user";
+import { allUsers, allDepartments, createUser, updateUser } from "../lib/user";
 
 interface User {
   id: number;
@@ -67,8 +67,11 @@ const UsersPage = () => {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
+  //state for create user form
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -76,8 +79,19 @@ const UsersPage = () => {
   const [departmentId, setDepartmentId] = useState<number | "">("");
   const [status, setStatus] = useState("active");
 
+  // state for edit user
+  const [editUserId, setEditUserId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editPosition, setEditPosition] = useState("");
+  const [editDepartmentId, setEditDepartmentId] = useState<number | "">("");
+  const [editStatus, setEditStatus] = useState("active");
+
   // search state
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,27 +118,48 @@ const UsersPage = () => {
     fetchDepartments();
   }, []); // Empty array = hanya run sekali saat mount
 
-  const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value.toLowerCase());
-    setCurrentPage(1); // Reset ke halaman pertama saat query berubah
-
-    if (e.target.value === "") {
+  // Effect untuk filter users berdasarkan debouncedSearchQuery
+  useEffect(() => {
+    if (debouncedSearchQuery === "") {
       setFilteredUsers(users);
       return;
     }
 
     const filtered = users.filter((user) => {
       return (
-        user.name.toLowerCase().includes(e.target.value.toLowerCase()) ||
-        user.email.toLowerCase().includes(e.target.value.toLowerCase()) ||
-        user.position.toLowerCase().includes(e.target.value.toLowerCase()) ||
-        user.department_name
-          .toLowerCase()
-          .includes(e.target.value.toLowerCase())
+        user.name.toLowerCase().includes(debouncedSearchQuery) ||
+        user.email.toLowerCase().includes(debouncedSearchQuery) ||
+        user.position.toLowerCase().includes(debouncedSearchQuery) ||
+        user.department_name.toLowerCase().includes(debouncedSearchQuery)
       );
     });
 
     setFilteredUsers(filtered);
+  }, [debouncedSearchQuery, users]);
+
+  // Cleanup timeout saat component unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase();
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset ke halaman pertama saat query berubah
+
+    // Clear previous timeout
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set new timeout untuk debounce
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(value);
+    }, 300);
   };
 
   const handleSubmitCreateUser = async () => {
@@ -154,6 +189,7 @@ const UsersPage = () => {
         setStatus("active");
 
         // Show success alert
+        setSuccessMessage("User baru berhasil ditambahkan ke sistem");
         setShowSuccessAlert(true);
 
         // Auto hide after 3 seconds
@@ -163,6 +199,60 @@ const UsersPage = () => {
       }
     } catch (error) {
       console.error("Error creating user:", error);
+    }
+  };
+
+  const handleEdit = (user: User) => {
+    setEditUserId(user.id);
+    setEditName(user.name);
+    setEditEmail(user.email);
+    setEditPhone(user.phone);
+    setEditPosition(user.position);
+    setEditDepartmentId(user.department_id);
+    setEditStatus(user.status);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSubmitEditUser = async () => {
+    if (!editUserId) return;
+
+    const formData: CreateUserData = {
+      name: editName,
+      email: editEmail,
+      phone: editPhone,
+      position: editPosition,
+      department_id: Number(editDepartmentId),
+      status: editStatus,
+    };
+
+    try {
+      const submitResult = await updateUser(editUserId, formData);
+      console.log(submitResult);
+
+      if (submitResult === "success") {
+        fetchUsers(); // Refresh user list
+        setIsEditModalOpen(false); // Close modal
+
+        // Reset form fields
+        setEditUserId(null);
+        setEditName("");
+        setEditEmail("");
+        setEditPhone("");
+        setEditPosition("");
+        setEditDepartmentId("");
+        setEditStatus("active");
+
+        // Show success alert
+        setSuccessMessage("Data user berhasil diperbarui");
+        setShowSuccessAlert(true);
+
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+          setShowSuccessAlert(false);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
     }
   };
 
@@ -177,9 +267,7 @@ const UsersPage = () => {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900">Berhasil!</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                User baru berhasil ditambahkan ke sistem
-              </p>
+              <p className="text-sm text-gray-600 mt-1">{successMessage}</p>
             </div>
             <button
               onClick={() => setShowSuccessAlert(false)}
@@ -334,7 +422,12 @@ const UsersPage = () => {
                   <span>{user.department_name}</span>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleEdit(user)}
+                  >
                     Edit
                   </Button>
                   <Button
@@ -545,6 +638,103 @@ const UsersPage = () => {
               }}
             >
               Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Data User</DialogTitle>
+            <DialogDescription>
+              Perbarui informasi user di bawah ini
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Nama Lengkap</Label>
+              <Input
+                id="edit-name"
+                placeholder="Masukkan nama lengkap"
+                onChange={(e) => setEditName(e.target.value)}
+                value={editName}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                placeholder="nama@email.com"
+                onChange={(e) => setEditEmail(e.target.value)}
+                value={editEmail}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">No. Telepon</Label>
+              <Input
+                id="edit-phone"
+                type="tel"
+                placeholder="08xxxxxxxxxx"
+                onChange={(e) => setEditPhone(e.target.value)}
+                value={editPhone}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-position">Posisi/Jabatan</Label>
+              <Input
+                id="edit-position"
+                placeholder="Contoh: Software Engineer"
+                onChange={(e) => setEditPosition(e.target.value)}
+                value={editPosition}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-department">Departemen</Label>
+              <Select
+                id="edit-department"
+                onChange={(e) => setEditDepartmentId(Number(e.target.value))}
+                value={editDepartmentId}
+              >
+                <option value="">Pilih Departemen</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-status">Status</Label>
+              <Select
+                id="edit-status"
+                onChange={(e) => setEditStatus(e.target.value)}
+                value={editStatus}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Batal
+            </Button>
+            <Button
+              onClick={() => {
+                handleSubmitEditUser();
+              }}
+            >
+              Update
             </Button>
           </DialogFooter>
         </DialogContent>

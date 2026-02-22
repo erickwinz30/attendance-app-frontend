@@ -90,3 +90,21 @@ export const createUser = async (formData: NewUser): Promise<string> => {
     return "Failed to create user";
   }
 };
+
+export const updateUser = async (
+  userId: number,
+  formData: NewUser,
+): Promise<string> => {
+  try {
+    console.log(`Updating user ${userId} with data:`, formData);
+    const response = await axios.put(`/api/users/${userId}`, formData);
+    if (response.status === 200) {
+      return "success";
+    } else {
+      return `Failed to update user: ${response.statusText}`;
+    }
+  } catch (error) {
+    console.error("Failed to update user:", error);
+    return "Failed to update user";
+  }
+};
