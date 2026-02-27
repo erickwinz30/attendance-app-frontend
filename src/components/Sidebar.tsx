@@ -109,27 +109,103 @@ const Sidebar = () => {
       ];
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-primary to-blue-700 text-white shadow-2xl flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-white/20">
-        <div className="flex items-center space-x-3">
-          <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-            <QrCode className="w-8 h-8" />
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-primary to-blue-700 text-white shadow-2xl flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-white/20">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+              <QrCode className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Attendance</h1>
+              <p className="text-xs text-white/70">Management System</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold">Attendance</h1>
-            <p className="text-xs text-white/70">Management System</p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 py-6 px-3">
+          <div className="space-y-2">
+            {navItems.map((item) => {
+              console.log("Rendering nav item:", item);
+              const Icon = item.icon;
+              // Check if current path matches, including sub-routes for certain paths
+              const isActive =
+                location.pathname === item.path ||
+                (item.path === "/users" &&
+                  location.pathname.startsWith("/users/")) ||
+                (item.path === "/history" &&
+                  location.pathname.startsWith("/history/"));
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center px-4 py-3 rounded-lg transition-all duration-200 group",
+                    isActive
+                      ? "bg-white text-primary shadow-lg"
+                      : "text-white/80 hover:bg-white/10 hover:text-white",
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "w-5 h-5 mr-3 transition-transform group-hover:scale-110",
+                      isActive ? "text-primary" : "",
+                    )}
+                  />
+                  <div className="flex-1">
+                    <p
+                      className={cn(
+                        "font-medium text-sm",
+                        isActive ? "text-primary" : "",
+                      )}
+                    >
+                      {item.label}
+                    </p>
+                    <p
+                      className={cn(
+                        "text-xs",
+                        isActive ? "text-primary/70" : "text-white/60",
+                      )}
+                    >
+                      {item.description}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-white/20 space-y-3">
+          {/* Logout Button */}
+          <button
+            onClick={handleLogoutClick}
+            disabled={isLoggingOut}
+            className="w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 bg-white/20 hover:bg-white/30 text-white border border-white/40 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+          >
+            <LogOut className="w-5 h-5 mr-3" />
+            <span className="font-medium text-sm">
+              {isLoggingOut ? "Logging out..." : "Logout"}
+            </span>
+          </button>
+
+          {/* Version Info */}
+          <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+            <p className="text-xs text-white/70">Version 1.0.0</p>
+            <p className="text-xs text-white/50 mt-1">© 2026 Attendance App</p>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-6 px-3">
-        <div className="space-y-2">
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-blue-700 text-white shadow-2xl z-50">
+        <nav className="flex items-center justify-around px-2 py-3">
           {navItems.map((item) => {
-            console.log("Rendering nav item:", item);
             const Icon = item.icon;
-            // Check if current path matches, including sub-routes for certain paths
             const isActive =
               location.pathname === item.path ||
               (item.path === "/users" &&
@@ -141,61 +217,38 @@ const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center px-4 py-3 rounded-lg transition-all duration-200 group",
+                  "flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all duration-200",
                   isActive
-                    ? "bg-white text-primary shadow-lg"
-                    : "text-white/80 hover:bg-white/10 hover:text-white",
+                    ? "bg-white text-primary"
+                    : "text-white/80 active:bg-white/10",
                 )}
               >
                 <Icon
+                  className={cn("w-6 h-6 mb-1", isActive ? "text-primary" : "")}
+                />
+                <span
                   className={cn(
-                    "w-5 h-5 mr-3 transition-transform group-hover:scale-110",
+                    "text-xs font-medium",
                     isActive ? "text-primary" : "",
                   )}
-                />
-                <div className="flex-1">
-                  <p
-                    className={cn(
-                      "font-medium text-sm",
-                      isActive ? "text-primary" : "",
-                    )}
-                  >
-                    {item.label}
-                  </p>
-                  <p
-                    className={cn(
-                      "text-xs",
-                      isActive ? "text-primary/70" : "text-white/60",
-                    )}
-                  >
-                    {item.description}
-                  </p>
-                </div>
+                >
+                  {item.label}
+                </span>
               </Link>
             );
           })}
-        </div>
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-white/20 space-y-3">
-        {/* Logout Button */}
-        <button
-          onClick={handleLogoutClick}
-          disabled={isLoggingOut}
-          className="w-full flex items-center px-4 py-3 rounded-lg transition-all duration-200 bg-white/20 hover:bg-white/30 text-white border border-white/40 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
-        >
-          <LogOut className="w-5 h-5 mr-3" />
-          <span className="font-medium text-sm">
-            {isLoggingOut ? "Logging out..." : "Logout"}
-          </span>
-        </button>
-
-        {/* Version Info */}
-        <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-          <p className="text-xs text-white/70">Version 1.0.0</p>
-          <p className="text-xs text-white/50 mt-1">© 2026 Attendance App</p>
-        </div>
+          {/* Logout Button for Mobile */}
+          <button
+            onClick={handleLogoutClick}
+            disabled={isLoggingOut}
+            className="flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all duration-200 text-white/80 active:bg-white/10 disabled:opacity-50"
+          >
+            <LogOut className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">
+              {isLoggingOut ? "..." : "Logout"}
+            </span>
+          </button>
+        </nav>
       </div>
 
       {/* Logout Confirmation Dialog */}
@@ -228,7 +281,7 @@ const Sidebar = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };
 

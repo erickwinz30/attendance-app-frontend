@@ -257,7 +257,7 @@ const UsersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8">
+    <div className="min-h-full bg-gradient-to-br from-green-50 to-teal-100 py-8 pb-24 md:pb-8">
       {/* Success Alert */}
       {showSuccessAlert && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-5">

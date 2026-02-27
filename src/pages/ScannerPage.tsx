@@ -150,7 +150,7 @@ const ScannerPage = () => {
     }
   };
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-full p-8 pb-24 md:pb-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">

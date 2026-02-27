@@ -190,7 +190,7 @@ const UserDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8 flex items-center justify-center">
+      <div className="min-h-full bg-gradient-to-br from-green-50 to-teal-100 py-8 pb-24 md:pb-8 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-600">Memuat data...</p>
@@ -201,7 +201,7 @@ const UserDetailPage = () => {
 
   if (error || !userData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8">
+      <div className="min-h-full bg-gradient-to-br from-green-50 to-teal-100 py-8 pb-24 md:pb-8">
         <div className="max-w-7xl mx-auto px-4">
           <Button
             variant="outline"
@@ -231,7 +231,7 @@ const UserDetailPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 py-8">
+    <div className="min-h-full bg-gradient-to-br from-green-50 to-teal-100 py-8 pb-24 md:pb-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Back Button */}
         <Button
